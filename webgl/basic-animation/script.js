@@ -1,6 +1,64 @@
 let gl = null;
 let glCanvas = null;
 
+/*
+ _____  _       _____      _               
+|  __ \| |     /  ___|    | |              
+| |  \/| |     \ `--.  ___| |_ _   _ _ __  
+| | __ | |      `--. \/ _ \ __| | | | '_ \ 
+| |_\ \| |____ /\__/ /  __/ |_| |_| | |_) |
+ \____/\_____/ \____/ \___|\__|\__,_| .__/ 
+                                    | |    
+                                    |_|    
+*/
+
+
+function compileShader(id, type) {
+  let code = document.getElementById(id).firstChild.nodeValue;
+  let shader = gl.createShader(type);
+
+  gl.shaderSource(shader, code);
+  gl.compileShader(shader);
+
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    console.log(`Error compiling ${type === gl.VERTEX_SHADER ? "vertex" : "fragment"} shader:`);
+    console.log(gl.getShaderInfoLog(shader));
+  }
+  return shader;
+}
+
+function buildShaderProgram(shaderInfo) {
+  let program = gl.createProgram();
+
+  shaderInfo.forEach(function(desc) {
+    let shader = compileShader(desc.id, desc.type);
+
+    if (shader) {
+      gl.attachShader(program, shader);
+    }
+  });
+
+  gl.linkProgram(program)
+
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    console.log("Error linking shader program:");
+    console.log(gl.getProgramInfoLog(program));
+  }
+
+  return program;
+}
+
+/*
+ _____ _             _                 _____                 _       
+/  ___| |           | |               /  __ \               | |      
+\ `--.| |_ __ _ _ __| |_ _   _ _ __   | /  \/ ___  _ __  ___| |_ ___ 
+ `--. \ __/ _` | '__| __| | | | '_ \  | |    / _ \| '_ \/ __| __/ __|
+/\__/ / || (_| | |  | |_| |_| | |_) | | \__/\ (_) | | | \__ \ |_\__ \
+\____/ \__\__,_|_|   \__|\__,_| .__/   \____/\___/|_| |_|___/\__|___/
+                              | |                                    
+                              |_|                                    
+*/
+
 // Aspect ratio and coordinate system
 // details
 
@@ -28,6 +86,18 @@ let aVertexPosition;
 let previousTime = 0.0;
 let degreesPerSecond = 90.0;
 window.addEventListener("load", startup, false);
+
+/*
+ _____ _             _                 _____           _      
+/  ___| |           | |               /  __ \         | |     
+\ `--.| |_ __ _ _ __| |_ _   _ _ __   | /  \/ ___   __| | ___ 
+ `--. \ __/ _` | '__| __| | | | '_ \  | |    / _ \ / _` |/ _ \
+/\__/ / || (_| | |  | |_| |_| | |_) | | \__/\ (_) | (_| |  __/
+\____/ \__\__,_|_|   \__|\__,_| .__/   \____/\___/ \__,_|\___|
+                              | |                             
+                              |_|                             
+*/
+
 
 function startup() {
   glCanvas = document.getElementById("glcanvas");
@@ -66,38 +136,9 @@ function startup() {
   rotationRate = 6;
 
   animateScene();
-}function buildShaderProgram(shaderInfo) {
-  let program = gl.createProgram();
+}
 
-  shaderInfo.forEach(function(desc) {
-    let shader = compileShader(desc.id, desc.type);
-
-    if (shader) {
-      gl.attachShader(program, shader);
-    }
-  });
-
-  gl.linkProgram(program)
-
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    console.log("Error linking shader program:");
-    console.log(gl.getProgramInfoLog(program));
-  }
-
-  return program;
-}function compileShader(id, type) {
-  let code = document.getElementById(id).firstChild.nodeValue;
-  let shader = gl.createShader(type);
-
-  gl.shaderSource(shader, code);
-  gl.compileShader(shader);
-
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    console.log(`Error compiling ${type === gl.VERTEX_SHADER ? "vertex" : "fragment"} shader:`);
-    console.log(gl.getShaderInfoLog(shader));
-  }
-  return shader;
-}function animateScene() {
+function animateScene() {
   gl.viewport(0, 0, glCanvas.width, glCanvas.height);
   gl.clearColor(0.8, 0.9, 1.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);

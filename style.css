@@ -1,7 +1,8 @@
 @import url('http://fonts.googleapis.com/css?family=Pacifico|Open+Sans:300,400,600');
 * {
   box-sizing: border-box;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Courier New', monospace;
+  line-height: 1.6;
   font-weight: 300;
 }
 a {
@@ -20,10 +21,12 @@ body {
   /* min-width: 300px; */
   /* max-width: 400px; */
   margin: 1.5em auto;
-  color: #333;
+  color: #FFF;
+  background-color:#000;
+  font-family: 'Courier New', monospace;
 }
 h1 {
-  font-family: 'Pacifico', cursive;
+  font-family: 'Courier New', monospace;
   font-weight: 400;
   font-size: 2.5em;
 }
@@ -46,13 +49,13 @@ ul li a.panel-heading {
   width: 100%;
   display: block;
   background: rgba(0, 0, 0, 0.78);
-  color: #fefefe;
+  color: #FFF;
   padding: .75em;
   border-radius: 0.15em;
   transition: background .3s ease;
 }
 ul li a.panel-heading:hover {
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(50, 50, 50, 0.9);
 }
 
 .container{
@@ -68,21 +71,24 @@ ul.tabs{
 	list-style: none;
 }
 ul.tabs li{
-	background: none;
-	color: #222;
+	background-color: #000;
+	color: #FFF;
 	display: inline-block;
 	padding: 10px 15px;
 	cursor: pointer;
 }
 
 ul.tabs li.current{
-	background: #ededed;
-	color: #222;
+	background: #000;
+	color: #FFF;
+        border: solid;
+        border-width : thin;
 }
 
 .tab-content{
 	display: none;
-	background: #ededed;
+	background: #000;
+        color: #FFF;
 	padding: 15px;
 }
 

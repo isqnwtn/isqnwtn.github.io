@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>WebGL Cellular Automaton</title>
+
+		<style>
+			html, body { width: 100%; height: 100%; overflow: hidden; background-color: black }
+			* { margin: 0; padding: 0; }
+			#canvas {
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: 0;
+				bottom: 0;
+				margin: auto;
+				width: 80%;
+				height: 80%;
+			}
+		</style>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.1/dat.gui.min.js"></script>
+		<script src="https://twgljs.org/dist/2.x/twgl.min.js"></script>
+
+	</head>
+	<body>
+		<canvas id="canvas"></canvas>
+
+		<script id="vert-passthrough" type="x-shader/x-vertex">
+			#ifdef GL_ES
+			precision mediump float;
+			#endif
+
+			attribute vec2 position;
+			void main() {
+				gl_Position = vec4(position, 0, 1);
+			}
+		</script>
+
+		<script id="frag-display" type="x-shader/x-fragment">
+			#ifdef GL_ES
+			precision mediump float;
+			#endif
+
+			uniform sampler2D buffer;
+			uniform vec2 size;
+			uniform int nbStates;
+
+			void main() {
+				vec4 v = texture2D(buffer, gl_FragCoord.xy / size);
+				// "wrong" color tranformation to brighten the result a bit
+			  gl_FragColor = vec4(v.rgb*255.0,255.0);
+			}
+		</script>
+
+		<script id="frag-update" type="x-shader/x-fragment">
+
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+uniform sampler2D buffer;
+uniform vec2 size;
+uniform int nbStates;
+          uniform int threshold;
+          uniform int minFactor;
+          uniform int maxFactor;
+          uniform int minLen;
+          uniform int maxLen;
+          uniform int rStrength;
+          uniform int gStrength;
+          uniform int bStrength;
+
+void main() {
+    float dx = 1.0 / size.x;
+    float dy = 1.0 / size.y;
+
+    vec2 uv = gl_FragCoord.xy / size;
+
+    vec4 s = texture2D(buffer, uv);
+    vec4 r = s;
+
+
+    vec3 n = vec3(0.0,0.0,0.0);
+    n += float(texture2D(buffer, mod(uv + vec2(dx,   0), 1.0)).rgb);
+    n += float(texture2D(buffer, mod(uv - vec2(dx,   0), 1.0)).rgb);
+    n += float(texture2D(buffer, mod(uv + vec2( 0,  dy), 1.0)).rgb);
+    n += float(texture2D(buffer, mod(uv - vec2( 0,  dy), 1.0)).rgb);
+    n += float(texture2D(buffer, mod(uv + vec2(dx,  dy), 1.0)).rgb);
+    n += float(texture2D(buffer, mod(uv - vec2(dx,  dy), 1.0)).rgb);
+    n += float(texture2D(buffer, mod(uv + vec2(dx, -dy), 1.0)).rgb);
+    n += float(texture2D(buffer, mod(uv - vec2(dx, -dy), 1.0)).rgb);
+
+  float len = n.r+n.g+n.b;
+  float minimum = float(minLen);
+  float maximum = float(maxLen);
+  float minMul = float(minFactor)*minimum;
+  float maxMul = float(maxFactor)*maximum;
+  vec3 colorStrength = vec3(float(rStrength)/100.0,float(gStrength)/100.0,float(bStrength)/100.0);
+    if (len<minimum){
+      r.rgb = max(r.rgb-colorStrength*(minimum-len)/minMul,0.0);
+    }
+    else if(len>=minimum && len<=maximum){
+        r.rgb = min(r.rgb+colorStrength*(len/maximum),1.0);
+    }
+    else{
+      r.rgb = max(r.rgb-colorStrength*(len/maxMul),0.0);
+    }
+
+    gl_FragColor = r;
+}
+		</script>
+
+		<script type="text/javascript" src="script.js"></script>
+	</body>
+</html>

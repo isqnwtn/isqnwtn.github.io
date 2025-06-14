@@ -34,110 +34,138 @@
 			</div>
 
 
-		</div><!-- container -->
+		</div> <!-- container -->
 
 		<div class="container">
-			<h1>My projects</h1>
 
-			<ul class="accordion">
-			  <li>
-			    <a class="panel-heading" href="#">λ Compiler</a>
-			    <ul class="shutter-panel-collapse">
-			      <li>
-				A simple compiler for a language similiar to c
-				<br> type infered and strictly typed
-				<br> old implementation in standard ML
-				<br> currently being exported to Haskell
-			      </li>
-			      <li>
-				<a href="#" class="panel-heading">λ Standard ML</a>
-				<div class="shutter-panel-collapse">
-				  <a href="https://github.com/JarYamsiv/compiler-lab-sem6/tree/master/project">github link</a>
-				</div>
-			      </li>
-			      <li>
-				<a href="#" class="panel-heading">λ Haskell</a>
-				<div class="shutter-panel-collapse">
-				  <a href="https://github.com/JarYamsiv/Haskell/tree/master/parsec/pretty-printer">github link</a>
-				</div>
-			      </li>
-			    </ul>
-			  </li>
+    		<ul class="tabs">
+    		    <li class="tab-link current" data-tab="tab-projects">Projects</li>
+    		    <li class="tab-link" data-tab="tab-blogs">Blogs</li>
+    		</ul>
 
-			  <li>
-			    <a class="panel-heading" href="">λ Voxel Engine</a>
-			    <ul class="shutter-panel-collapse">
-			      <li>
-				A simple voxel engine to render 3d objects
-				<br> Voexel is the short for volumetric pixel
-				<br> Any shape can be divided into a set of voxels
-				<br> This project is to create such an engine in C++
-			      </li>
-			      <li>
-				<a href="#" class="panel-heading">λ C++</a>
-				<div class="shutter-panel-collapse">
-				  <a href="https://github.com/JarYamsiv/voxelEngine">github link</a>
-				</div>
-			      </li>
-			    </ul>
-			  </li>
+            <!-- ==========================  PROJECTS TAB    : START ===================================================-->
+    		<div id="tab-projects" class="tab-content current">
+    			<h1>My projects</h1>
 
-			  <li>
-			    <a class="panel-heading" href="">λ Cellular Automaton</a>
-			    <ul class="shutter-panel-collapse">
-			      <li>
-				A cellular automaton to simulate John Conwoy's Game of life
-				<br> Cellular automatons are cells interacting with nearby cells with some given rules
-				<br> to perform behaviors that are similiar to real life systems
-			      </li>
-			      <li>
-				<a href="#" class="panel-heading">λ C++</a>
-				<div class="shutter-panel-collapse">
-				  <a href="https://github.com/JarYamsiv/GameOfLife_CellularAutomaton">github link</a>
-				</div>
-			      </li>
-			    </ul>
-			  </li>
+    			<ul class="accordion">
+    			  <li>
+    			    <a class="panel-heading" href="#">λ Compiler</a>
+    			    <ul class="shutter-panel-collapse">
+    			      <li>
+        				A simple compiler for a language similiar to c
+        				<br> type infered and strictly typed
+        				<br> old implementation in standard ML
+        				<br> currently being exported to Haskell
+    			      </li>
+    			      <li>
+    				<a href="#" class="panel-heading">λ Standard ML</a>
+    				<div class="shutter-panel-collapse">
+    				  <a href="https://github.com/JarYamsiv/compiler-lab-sem6/tree/master/project">github link</a>
+    				</div>
+    			      </li>
+    			      <li>
+    				<a href="#" class="panel-heading">λ Haskell</a>
+    				<div class="shutter-panel-collapse">
+    				  <a href="https://github.com/JarYamsiv/Haskell/tree/master/parsec/pretty-printer">github link</a>
+    				</div>
+    			      </li>
+    			    </ul>
+    			  </li>
 
-			  <li>
-			    <a class="panel-heading" href="">λ Tests</a>
-			    <ul class="shutter-panel-collapse">
-			      <li>
-				Some tests in web-dev that I'm trying out.. might not make any sense
-				  </li>
+    			  <li>
+    			    <a class="panel-heading" href="">λ Voxel Engine</a>
+    			    <ul class="shutter-panel-collapse">
+    			      <li>
+    				A simple voxel engine to render 3d objects
+    				<br> Voexel is the short for volumetric pixel
+    				<br> Any shape can be divided into a set of voxels
+    				<br> This project is to create such an engine in C++
+    			      </li>
+    			      <li>
+    				<a href="#" class="panel-heading">λ C++</a>
+    				<div class="shutter-panel-collapse">
+    				  <a href="https://github.com/JarYamsiv/voxelEngine">github link</a>
+    				</div>
+    			      </li>
+    			    </ul>
+    			  </li>
 
-			      <li>
-					<a href="#" class="panel-heading">linear regression</a>
-					<div class="shutter-panel-collapse">
-					<a href="./linearRegression/index.html">github link</a>
-					</div>
-				  </li>
+    			  <li>
+    			    <a class="panel-heading" href="">λ Cellular Automaton</a>
+    			    <ul class="shutter-panel-collapse">
+    			      <li>
+    				A cellular automaton to simulate John Conwoy's Game of life
+    				<br> Cellular automatons are cells interacting with nearby cells with some given rules
+    				<br> to perform behaviors that are similiar to real life systems
+    			      </li>
+    			      <li>
+    				<a href="#" class="panel-heading">λ C++</a>
+    				<div class="shutter-panel-collapse">
+    				  <a href="https://github.com/JarYamsiv/GameOfLife_CellularAutomaton">github link</a>
+    				</div>
+    			      </li>
+    			    </ul>
+    			  </li>
 
-				  <li>
-					<a href="#" class="panel-heading">webgl</a>
-					<div class="shutter-panel-collapse">
-						<ul>
-							<li>
-								<a href="./webgl/detect/index.html">detect</a>
-							</li>
-							<li>
-								<a href="./webgl/basic-animation/index.html">basic-animation</a>
-							</li>
-							<li>
-								<a href="./webgl/cell/index.html">smooth-cellular-automata</a>
-							</li>
-						</ul>
-					</div>
-				  </li>
+    			  <li>
+    			    <a class="panel-heading" href="">λ Tests</a>
+    			    <ul class="shutter-panel-collapse">
+    			      <li>
+    				Some tests in web-dev that I'm trying out.. might not make any sense
+    				  </li>
+
+    			      <li>
+    					<a href="#" class="panel-heading">linear regression</a>
+    					<div class="shutter-panel-collapse">
+    					<a href="./linearRegression/index.html">github link</a>
+    					</div>
+    				  </li>
+
+    				  <li>
+    					<a href="#" class="panel-heading">webgl</a>
+    					<div class="shutter-panel-collapse">
+    						<ul>
+    							<li>
+    								<a href="./webgl/detect/index.html">detect</a>
+    							</li>
+    							<li>
+    								<a href="./webgl/basic-animation/index.html">basic-animation</a>
+    							</li>
+    							<li>
+    								<a href="./webgl/cell/index.html">smooth-cellular-automata</a>
+    							</li>
+    						</ul>
+    					</div>
+    				  </li>
 
 
 
-			    </ul>
-			  </li>
+    			    </ul>
+    			  </li>
 
-			</ul>
-		</div>
+    			</ul>
+    		</div>
+            <!-- ==========================  PROJECTS TAB    : END ===================================================-->
 
+            <!-- ==========================  BLOGS TAB    : START ===================================================-->
+    		<div id="tab-blogs" class="tab-content">
+                <h1>My Blogs</h1>
+                <ul class="accordion">
+       			  <li>
+         			    <a class="panel-heading" href="">λ Typed Actor System</a>
+         			    <ul class="shutter-panel-collapse">
+           			      <li>
+                            Blog regarding the implementation of a typed actor model in Rust.
+                            <br> This is inspired bt the actor model from Akka
+                      		<br><a href="blogs/typed_actor_system.html">blog link</a>
+           			      </li>
+         			    </ul>
+       			  </li>
+                </ul>
+    		</div>
+            <!-- ==========================  BLOGS TAB    : END ===================================================-->
+
+		</div> <!-- container -->
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
         <script src="jpix.min.js"></script>

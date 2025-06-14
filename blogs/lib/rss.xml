@@ -1,0 +1,18 @@
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[notes]]></title><description><![CDATA[Obsidian digital garden]]></description><link>http://github.com/dylang/node-rss</link><image><url>lib/media/favicon.png</url><title>notes</title><link/></image><generator>Webpage HTML Export plugin for Obsidian</generator><lastBuildDate>Sat, 14 Jun 2025 07:57:52 GMT</lastBuildDate><atom:link href="lib/rss.xml" rel="self" type="application/rss+xml"/><pubDate>Sat, 14 Jun 2025 07:57:52 GMT</pubDate><ttl>60</ttl><dc:creator/><item><title><![CDATA[Table of contents]]></title><description><![CDATA[ 
+ <br><br>
+<br><a data-href="#Introduction" href="about:blank#Introduction" class="internal-link" target="_self" rel="noopener nofollow">Introduction</a>
+<br><a data-href="#Creating the project" href="about:blank#Creating_the_project" class="internal-link" target="_self" rel="noopener nofollow">Creating the project</a>
+<br><a data-href="#Thanks" href="about:blank#Thanks" class="internal-link" target="_self" rel="noopener nofollow">Thanks</a> 
+<br><br>An actor model in concurrent programming is a conceptual model for handling concurrent computation, the core concepts of an Actor model are as follows<br>
+<br>Processes messages asynchronously
+<br>Has it's own state which is not shared
+<br>Can do one of the three things when it receives a message
+
+<br>Send message to other actors
+<br>Create new actors
+<br>Modify internal state and behaviour 
+
+
+<br><br>we can start out the Rust project with the following command ( for now we simply name it as actors)<br>cargo new actors
+<br><br>As of 2025-06-14 this page is still WIP, I'll update it as I'm working on my project.<br>
+Checkout my website at <a data-tooltip-position="top" aria-label="https://isqnwtn.gihub.io/" rel="noopener nofollow" class="external-link" href="https://isqnwtn.gihub.io/" target="_blank">isqnwtn.github.io</a>]]></description><link>Typed Actor System.html</link><guid isPermaLink="false">Typed Actor System.md</guid><pubDate>Sat, 14 Jun 2025 07:53:55 GMT</pubDate></item></channel></rss>

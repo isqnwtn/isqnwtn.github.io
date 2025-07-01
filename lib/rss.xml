@@ -1,0 +1,442 @@
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[notes]]></title><description><![CDATA[Obsidian digital garden]]></description><link>http://github.com/dylang/node-rss</link><image><url>lib/media/favicon.png</url><title>notes</title><link/></image><generator>Webpage HTML Export plugin for Obsidian</generator><lastBuildDate>Tue, 01 Jul 2025 15:06:56 GMT</lastBuildDate><atom:link href="lib/rss.xml" rel="self" type="application/rss+xml"/><pubDate>Tue, 01 Jul 2025 15:06:55 GMT</pubDate><ttl>60</ttl><dc:creator/><item><title><![CDATA[Typed Actor System]]></title><description><![CDATA[ 
+ <br><br>An actor model in concurrent programming is a conceptual model for handling concurrent computation, the core concepts of an Actor model are as follows<br>
+<br>Processes messages asynchronously
+<br>Has it's own state which is not shared
+<br>Can do one of the three things when it receives a message
+
+<br>Send message to other actors
+<br>Create new actors
+<br>Modify internal state and behaviour 
+
+
+<br><br>we can start out the Rust project with the following command ( for now we simply name it as tyactor , stands for typed-actor )<br>cargo new --lib tyactor
+<br>but this only creates a project with a library file. we need some way to run it as well. so let's add a binary file to it. Let this be inside the folder app<br>mkdir app
+touch app/main.rs
+<br>now change the Cargo.toml accordingly so that we can expose the library as well as run an example using the library functions with cargo command itself.<br>[lib]
+name = "tyactor"
+path = "src/lib.rs"
+
+[[bin]]
+name = "example"
+path = "app/main.rs"
+<br>now to run the code inside app/main.rs we only need to run the command <br>cargo run example
+<br><br>consider the following code for creating a mpsc::channel<br>use tokio::sync::{mpsc, oneshot};
+
+#[tokio::main]
+async fn main() {
+    // mpsc::channel retursn a Sender (tx) and a mutable Receiver (mut rx)
+    let (tx1, mut rx) = mpsc::channel(32);
+
+    // we clone the Sender to simulate the idea of sending data from two
+    // different sources, both of these senders will be pointing to the
+    // same receiver
+    let tx2 = tx1.clone();
+
+    // spawns an async tokio task that sends the data to the receiver.
+    // this is an async operation as the `tx1.send()` returns a future
+    // on which we `await` to see if the value was sent correctly, we may
+    // have to wait here if the receiver queue is full. the `move` keywords
+    // here means that the value `tx1` is moved into this context and is
+    // dropped as soon as the block finishes executing. ie, when the data
+    // is sent
+    tokio::spawn(async move {
+        if let Err(_) = tx1.send(3).await {
+            println!("the receiver dropped");
+        }
+    });
+
+    tokio::spawn(async move {
+        if let Err(_) = tx2.send(4).await {
+            println!("the receiver dropped");
+        }
+    });
+
+    // the Receiver will return a `Some(value)` as long as there's a Sender
+    // active. and in this case when both the Senders are dropped the
+    // `rx.recv().await` returns None. otherwise it polls the next message
+    // from the queue and we can process the message
+    while let Some(msg) = rx.recv().await {
+        println!("Got {:?}", msg);
+    }
+}
+
+<br><br>let's use the previous ideas to write two structs for Actor which is responsible for handling messages sent to it and an ActorHandle which can be used to send messages to the Actor . This code is inspired by <a data-tooltip-position="top" aria-label="https://ryhl.io/blog/actors-with-tokio/" rel="noopener nofollow" class="external-link" href="https://ryhl.io/blog/actors-with-tokio/" target="_blank">Actors with Tokio</a><br>use std::marker::Send;
+use tokio::sync::mpsc;
+
+/// The Actor struct, responsible for spawning the actor that receive the
+/// messages and then handle them, the actor itself may have a state that can
+/// be affected by the message
+pub struct Actor&lt;M: Send + 'static, S: Default + Send&gt; {
+    // a handle to the receiver from mpsc::channel so that we can use it to
+    // receive messages
+    receiver: mpsc::Receiver&lt;M&gt;,
+    // the state of the actor that can be modified by the handle function
+    state: S,
+    // the state is borrowed mutably so that the function may modify it
+    handle: fn(&amp;mut S, msg: M) -&gt; (),
+}
+
+impl&lt;M: Send + 'static, S: Default + Send&gt; Actor&lt;M, S&gt; {
+    pub fn new(tx: mpsc::Receiver&lt;M&gt;, f: fn(&amp;mut S, M) -&gt; ()) -&gt; Self {
+        Actor {
+            receiver: tx,
+            state: S::default(),
+            handle: f,
+        }
+    }
+    pub async fn start(mut self) {
+        while let Some(msg) = self.receiver.recv().await {
+            (self.handle)(&amp;mut self.state, msg)
+        }
+    }
+}
+
+/// ActorHandle can be used to send messages to the respective actor.
+#[derive(Clone)]
+pub struct ActorHandle&lt;M: Send + 'static&gt; {
+    // holds a handle to the sender from mpsc::channel
+    id: mpsc::Sender&lt;M&gt;,
+}
+
+impl&lt;M: Send&gt; ActorHandle&lt;M&gt; {
+    // when we create a new actor what we only return is the handle, during
+    // it's creation we launch the actor and create a handle to it as well.
+    pub fn new&lt;S: Default + Send + 'static&gt;(size: usize, f: fn(&amp;mut S, M) -&gt; ()) -&gt; Self {
+        let (tx, rx): (mpsc::Sender&lt;M&gt;, mpsc::Receiver&lt;M&gt;) = mpsc::channel(size);
+        let actor: Actor&lt;M, S&gt; = Actor::new(rx, f);
+        tokio::spawn(async move {
+            let _ = actor.start().await;
+        });
+        let handle = ActorHandle { id: tx };
+        return handle;
+    }
+    pub async fn send(self, msg: M) -&gt; () {
+        if let Err(e) = self.id.send(msg).await {
+            eprintln!("{:?}", e);
+        }
+    }
+}
+
+<br><br>let's capture the idea of an Actor through a trait to make this process more straightforward<br>pub trait ActorTrait {
+    type State : Default + Send + 'static;
+    type Message : Send + 'static;
+    fn handle(state: &amp;mut Self::State, msg: Self::Message) -&gt; ();
+}
+<br>changing the ActorHandle implementation into <br>    pub fn new&lt;A : ActorTrait&lt;Message = M&gt;&gt;(size: usize) -&gt; Self {
+        let (tx, rx): (mpsc::Sender&lt;M&gt;, mpsc::Receiver&lt;M&gt;) 
+            = mpsc::channel(size);
+        let actor: Actor&lt;M, &lt;A as ActorTrait&gt;::State&gt; 
+            = Actor::new(rx, &lt;A as ActorTrait&gt;::handle);
+        tokio::spawn(async move {
+            let _ = actor.start().await;
+        });
+        let handle = ActorHandle { id: tx };
+        return handle;
+    }
+
+<br><br>So we've setup a basic actor framework that's capable of receiving a message and calling handle function on it, which processes the message and updates it's own state<br>
+But what if we want to ask the actor something? what if we need to add a PoisonPill to it and terminate the actor with a cleanup code?<br>
+Let's consider the following example of ActorTrait<br>pub trait ActorTrait: 'static {
+    // the state of the actor
+    type State:  Send + 'static;
+    // startup code to run before the actor is created, helps create the starting
+    // state of the actor
+    fn startup() -&gt; Self::State;
+
+    // messages that can be send to an actor but won't receive any reply from
+    // the actor
+    type Message: Send + 'static;
+    // how to process such messages, this could modify the state of the actor
+    fn handle(state: &amp;mut Self::State, msg: Self::Message) -&gt; ();
+
+    // questions that can be asked to the actor
+    type Ask: Send + 'static;
+    // expected responses from the actor captured into a type
+    type Answer: Send + 'static;
+    // how the actor handles the questions based on the current state of the
+    // actor, remember this can also modify the state
+    fn ask(state: &amp;mut Self::State, msg: Self::Ask) -&gt; Self::Answer;
+
+    // send a kill signal to the actor, causing it to run the cleanup code and
+    // drop all the receiver handles it has
+    type PoisonPill: Default + Send + 'static;
+    // cleanup code to run once the actor is ready to terminate
+    fn cleanup(state: &amp;mut Self::State, signal: Self::PoisonPill) -&gt; ();
+}
+<br>a quick run through of what each of these functionalities do in depth<br>
+<br>Startup - when an actor is created it may want to configure itself by creating and setting certain variables within it's state. Note that we don't need State : Default anymore because we're using startup()-&gt; State to produce state of the actor during startup
+<br>Message - these are messages that the actor can process and do stuff with it's own internal state. note that these messages are fire and forget, whoever sends this do not expect any reply from the actor. 
+<br>Queries - this allows an external entity to make queries to the actor, to which the actor will produce an output. This query can involve changing the state of the actor and the query's answer itself may or may not depend on the state of the actor. The query can be made with or without a timeout
+<br>Poison Pill  - when it's time for the actor to terminate we need to send it a signal to ask it to start termination. and upon this message is received the actor should run the clean up code ( which could involve sending PoisonPill to other actor's created by this actor and other handles that needs to be closed etc.)
+<br><br>Now let's see how this will change the implementation of both Actor and ActorHandle<br>pub struct Actor&lt;A: ActorTrait&gt; {
+    // a handle to the receiver from mpsc::channel so that we can use it to
+    // receive messages
+    receiver: mpsc::Receiver&lt;&lt;A as ActorTrait&gt;::Message&gt;,
+    // a receiver to handle poison pill
+    poison_pill: mpsc::Receiver&lt;&lt;A as ActorTrait&gt;::PoisonPill&gt;,
+    // a receiver to handle queries that will have a reply
+    query: mpsc::Receiver&lt;Query&lt;A&gt;&gt;,
+    // the state of the actor that can be modified by the handle function
+    state: &lt;A as ActorTrait&gt;::State,
+}
+
+// the query struct contains of two things, one the query itself. And it contains
+// a oneshot::Sender channel through which the reply can be sent back to the 
+// place where the question came from
+pub struct Query&lt;A: ActorTrait&gt; {
+    query: &lt;A as ActorTrait&gt;::Ask,
+    answer_channel: oneshot::Sender&lt;&lt;A as ActorTrait&gt;::Answer&gt;,
+}
+<br>let's take a look at the function implementations for Actor<br>impl&lt;A: ActorTrait&gt; Actor&lt;A&gt; {
+    pub fn new(
+        rx: mpsc::Receiver&lt;&lt;A as ActorTrait&gt;::Message&gt;,
+        krx: mpsc::Receiver&lt;&lt;A as ActorTrait&gt;::PoisonPill&gt;,
+        arx: mpsc::Receiver&lt;Query&lt;A&gt;&gt;,
+    ) -&gt; Self {
+        Actor {
+            receiver: rx,
+            poison_pill: krx,
+            query: arx,
+            // using the startup function we can define the starting state of 
+            // the actor
+            state: &lt;A as ActorTrait&gt;::startup(),
+        }
+    }
+    pub async fn start(mut self) -&gt; u8 {
+	    // the actor runs in a forever loop awaiting values on all of the 
+	    // channels on which it's listening to.
+        loop {
+            tokio::select! {
+	            // handles the messages that are fire and forget.
+	            // ie, the actor doesn't reply with anything
+                Some(msg) = self.receiver.recv() =&gt; {
+                    &lt;A as ActorTrait&gt;::handle(&amp;mut self.state, msg);
+                }
+                // handles the termination of the actor, when it's terminated
+                // we return `1` to indicate that this is due to a poisonPill
+                Some(p) = self.poison_pill.recv() =&gt; {
+	                // perform cleanup code before terminating
+                    &lt;A as ActorTrait&gt;::cleanup(&amp;mut self.state,p);
+                    return 1;
+                }
+                // handles a query that's send to the actor, the query itself 
+                // will contain the sender's address, once we have the answer
+                // we can reply back through that channel
+                Some(q) = self.query.recv() =&gt; {
+                    let a = &lt;A as ActorTrait&gt;::ask(&amp;mut self.state,q.query);
+                    let _ = q.answer_channel.send(a);
+                }
+                // this code is tirggered when the last reference to the actor
+                // handle is dropped
+                else =&gt; {
+                    eprintln!("all senders dropped");
+                    &lt;A as ActorTrait&gt;::cleanup(
+	                    &amp;mut self.state, 
+	                    &lt;A as ActorTrait&gt;::PoisonPill::default()
+	                );
+                    break;
+                }
+            }
+        }
+        return 0;
+    }
+}
+<br>and the code for ActorHandle as well.<br>#[derive(Clone)]
+pub struct ActorHandle&lt;A: ActorTrait&gt; {
+    // holds a handle to the sender from mpsc::channel
+    id: mpsc::Sender&lt;&lt;A as ActorTrait&gt;::Message&gt;,
+    // holds a handle to send poison pill
+    kid: mpsc::Sender&lt;&lt;A as ActorTrait&gt;::PoisonPill&gt;,
+    // holds a handle to send queries
+    qid: mpsc::Sender&lt;Query&lt;A&gt;&gt;,
+}
+
+impl&lt;A: ActorTrait&gt; ActorHandle&lt;A&gt; {
+    // when we create a new actor what we only return is the handle, during
+    // it's creation we launch the actor and create a handle to it as well.
+    pub fn new(size: usize) -&gt; Self {
+	    // create the channel for normal messages
+        let (tx, rx): (
+            mpsc::Sender&lt;&lt;A as ActorTrait&gt;::Message&gt;,
+            mpsc::Receiver&lt;&lt;A as ActorTrait&gt;::Message&gt;,
+        ) = mpsc::channel(size);
+        // create the channel for poisonpill
+        let (ktx, krx): (
+            mpsc::Sender&lt;&lt;A as ActorTrait&gt;::PoisonPill&gt;,
+            mpsc::Receiver&lt;&lt;A as ActorTrait&gt;::PoisonPill&gt;,
+        ) = mpsc::channel(1);
+        // create the channel for queries
+        let (atx, arx): (
+	        mpsc::Sender&lt;Query&lt;A&gt;&gt;, 
+	        mpsc::Receiver&lt;Query&lt;A&gt;&gt;
+	    ) = mpsc::channel(size);
+
+        let actor: Actor&lt;A&gt; = Actor::new(rx, krx, arx);
+        tokio::spawn(async move {
+            let res = actor.start().await;
+            eprintln!("Actor exited with : {}", res);
+        });
+        let handle = ActorHandle {
+            id: tx,
+            kid: ktx,
+            qid: atx,
+        };
+        return handle;
+    }
+    pub async fn send(&amp;self, msg: &lt;A as ActorTrait&gt;::Message) -&gt; () {
+        if let Err(e) = self.id.send(msg).await {
+            eprintln!("{:?}", e);
+        }
+    }
+    pub async fn terminate(&amp;self, msg: &lt;A as ActorTrait&gt;::PoisonPill) -&gt; () {
+        if let Err(e) = self.kid.send(msg).await {
+            eprintln!("{:?}", e);
+        }
+    }
+    pub async fn ask(
+        &amp;self,
+        question: &lt;A as ActorTrait&gt;::Ask,
+    ) -&gt; Result&lt;&lt;A as ActorTrait&gt;::Answer, QueryError&lt;A&gt;&gt; {
+	    // first we need to create a oneshot channel through which the Actor can
+	    // reply
+        let (tx, rx): (
+            oneshot::Sender&lt;&lt;A as ActorTrait&gt;::Answer&gt;,
+            oneshot::Receiver&lt;&lt;A as ActorTrait&gt;::Answer&gt;,
+        ) = oneshot::channel();
+        // while making the query that's sent to the actor we attach the Sender
+        // handle to it so that the actor can handle the query and reply via
+        // that handle
+        let q: Query&lt;A&gt; = Query {
+            query: question,
+            answer_channel: tx,
+        };
+        // send the query to the actor
+        let _ = self.qid.send(q).await.map_err(QueryError::AskError)?;
+        // wait for the answer
+        // NOTE : this can be done with timeout as well
+        rx.await.map_err(QueryError::AnswerError)
+    }
+
+}
+
+#[derive(Debug)]
+pub enum QueryError&lt;A: ActorTrait&gt; {
+    AskError(SendError&lt;Query&lt;A&gt;&gt;),
+    AnswerError(oneshot::error::RecvError),
+}
+
+<br>let's see an example using the library that we've built<br>#[derive(Clone,Debug)]
+pub struct TestActor {}
+
+impl ActorTrait for TestActor {
+	// the state of the actor is a tuple representing
+	// (total_number_of_msg,total_sum)
+    type State = (usize,i64);
+    fn startup() -&gt; Self::State {
+        (0,0)
+    }
+
+    // the messages are just integers that will be added to the sum
+    type Message = i64;
+    // increment the total number of messages received by one 
+    // add the message to the total and display current status
+    fn handle(state: &amp;mut Self::State, msg: Self::Message) -&gt; () {
+        (*state).0 +=1;
+        (*state).1 += msg;
+        println!("total received : {} messages, current sum : {}", 
+	        (*state).0, (*state).1
+	    );
+    }
+
+	// the query doesn't involve anything but asking the actor for it's 
+	// current sum which is an integer
+    type Ask = ();
+    type Answer = i64;
+    // from the state of the actor return the sum
+    fn ask(state: &amp;mut Self::State, _msg: Self::Ask) -&gt; Self::Answer {
+        (*state).1
+    }
+
+	// not really needed but upon terminating just set the state
+	// back to (0,0)
+    type PoisonPill = ();
+    fn cleanup(state: &amp;mut Self::State, _signal: ()) -&gt; () {
+        *state = (0,0);
+    }
+
+}
+
+#[tokio::main]
+async fn main() {
+	// now that we've implemented the trait `Actor` for `TestActor` we 
+	// can use that to create a handle for our actor
+    let handle : Arc&lt;ActorHandle&lt;TestActor&gt;&gt; = Arc::new(ActorHandle::new(32));
+    // we need to clone this handle as when we launch the async code the handle
+    // is moved into the codeblock, hence creating the handle with an
+    // Arc reference which is thread compatible
+    let termination_handle = handle.clone();
+    let ask_handle = handle.clone();
+
+	// time until which we should wait before terminating the actor
+    let terminate_time = std::time::Duration::from_millis(10000);
+    // time until we should wait until asking the actor for it's current sum
+    let ask_time = std::time::Duration::from_millis(7000);
+    // step time to wait until we send the next message to actor
+    let step = std::time::Duration::from_millis(400);
+
+    // spawn in a loop that'll wait for the step time and then send a message 
+    // to the actor. save this handle so that at the end of the `main` function 
+    // we can wait on this to ensure we wait til all the messages are 
+    // sent to the actor before terminating the main thread itself
+    let a = tokio::spawn(async move {
+        for i in 0..30 {
+            handle.send(i).await;
+            tokio::time::sleep(step).await;
+        }
+    });
+
+    // spwan in another thread and wait until the termination time before 
+    // sending the poison_pill
+    tokio::spawn(async move {
+        tokio::time::sleep(terminate_time).await;
+        termination_handle.terminate(()).await;
+    });
+
+	// after waiting until the ask time we can ask the actor what it's current
+	// state is, by then the messeg sender would've sent a bunch of integers
+	// that would've accumulated in the state of the actor
+    tokio::spawn(async move {
+        tokio::time::sleep(ask_time).await;
+        let a = ask_handle.ask(()).await;
+        println!("got answer from actor {:?}",a);
+    });
+
+	// await on the first sender so that the main thread won't exit before all
+	// the messages are sent. we have to awai it here and not where we create it 
+	// because once we start awaiting on it the execution of the rest of
+	// the `main` function is suspended. so we wait to spawn every other thread
+	// that would send the messages needed before waiting on the message 
+	// sender to finish sending
+    let _ = a.await;
+    // exit main
+    ()
+}
+<br>from the example above we can notice that the actor will be terminated before the sender could send all the messages, this can be seen while running this code as well as it produces<br>
+once the termination is complete.<br>Actor exited with : 1
+SendError { .. }
+SendError { .. }
+SendError { .. }
+SendError { .. }
+SendError { .. }
+<br>before the actor is terminated we can see it processing messages and answering the query as well <br>...
+total received : 14 messages, current sum : 91
+total received : 15 messages, current sum : 105
+total received : 16 messages, current sum : 120
+total received : 17 messages, current sum : 136
+total received : 18 messages, current sum : 153
+got answer from actor Ok(153)
+total received : 19 messages, current sum : 171
+total received : 20 messages, current sum : 190
+total received : 21 messages, current sum : 210
+...
+<br>changing the wait times we can see how the behaviour of the actor changes accordingly<br><br>checkout more of my works at :  🏠 <a data-tooltip-position="top" aria-label="https://isqnwtn.github.io/" rel="noopener nofollow" class="external-link" href="https://isqnwtn.github.io/" target="_blank">home</a>]]></description><link>blogs/Typed Actor System.html</link><guid isPermaLink="false">blogs/Typed Actor System.md</guid><pubDate>Tue, 01 Jul 2025 15:03:22 GMT</pubDate></item></channel></rss>

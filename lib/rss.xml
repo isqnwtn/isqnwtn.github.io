@@ -1,4 +1,4 @@
-<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[notes]]></title><description><![CDATA[Obsidian digital garden]]></description><link>http://github.com/dylang/node-rss</link><image><url>lib/media/favicon.png</url><title>notes</title><link/></image><generator>Webpage HTML Export plugin for Obsidian</generator><lastBuildDate>Tue, 01 Jul 2025 15:14:11 GMT</lastBuildDate><atom:link href="lib/rss.xml" rel="self" type="application/rss+xml"/><pubDate>Tue, 01 Jul 2025 15:14:10 GMT</pubDate><ttl>60</ttl><dc:creator/><item><title><![CDATA[Typed Actor System]]></title><description><![CDATA[ 
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[notes]]></title><description><![CDATA[Obsidian digital garden]]></description><link>http://github.com/dylang/node-rss</link><image><url>lib/media/favicon.png</url><title>notes</title><link/></image><generator>Webpage HTML Export plugin for Obsidian</generator><lastBuildDate>Fri, 04 Jul 2025 05:56:33 GMT</lastBuildDate><atom:link href="lib/rss.xml" rel="self" type="application/rss+xml"/><pubDate>Fri, 04 Jul 2025 05:56:32 GMT</pubDate><ttl>60</ttl><dc:creator/><item><title><![CDATA[Typed Actor System]]></title><description><![CDATA[ 
  <br><br>An actor model in concurrent programming is a conceptual model for handling concurrent computation, the core concepts of an Actor model are as follows<br>
 <br>Processes messages asynchronously
 <br>Has it's own state which is not shared
@@ -9,11 +9,11 @@
 <br>Modify internal state and behaviour 
 
 
-<br><br>we can start out the Rust project with the following command ( for now we simply name it as tyactor , stands for typed-actor )<br>cargo new --lib tyactor
+<br><br>we can start out the Rust project with the following command.<br>cargo new --lib typed_actor
 <br>but this only creates a project with a library file. we need some way to run it as well. so let's add a binary file to it. Let this be inside the folder app<br>mkdir app
 touch app/main.rs
 <br>now change the Cargo.toml accordingly so that we can expose the library as well as run an example using the library functions with cargo command itself.<br>[lib]
-name = "tyactor"
+name = "typed_actor"
 path = "src/lib.rs"
 
 [[bin]]
@@ -439,4 +439,9 @@ total received : 19 messages, current sum : 171
 total received : 20 messages, current sum : 190
 total received : 21 messages, current sum : 210
 ...
-<br>changing the wait times we can see how the behaviour of the actor changes accordingly<br><br>checkout more of my works at :  🏠 <a data-tooltip-position="top" aria-label="https://isqnwtn.github.io/" rel="noopener nofollow" class="external-link" href="https://isqnwtn.github.io/" target="_blank">home</a>]]></description><link>blogs/Typed Actor System.html</link><guid isPermaLink="false">blogs/Typed Actor System.md</guid><pubDate>Tue, 01 Jul 2025 15:03:22 GMT</pubDate></item></channel></rss>
+<br>changing the wait times we can see how the behaviour of the actor changes accordingly<br><br>as you can see from the code, the functions provided the the trait are all synchronous functions. That is when the actor handles a message or a query or when it creates itself we cannot call any other asynchronous functions inside it, this prevents the actor from creating any other actor from within itself. this can be bypassed by making the functions async<br>
+for example : <br>async fn startup() -&gt; Self::State ;
+<br>then you will notice that the compiler throws an error like this <br>warning: use of `async fn` in public traits is discouraged as auto trait bounds cannot be specified
+<br>since we are enabling the functions from this trait as public we can solve this error by doing the following.<br>fn startup() -&gt; impl Future&lt;Output =  Self::State&gt; + Send;
+<br>this still allows us to make these functions async and public. without having any compiler warnings.<br><br>the complete implementation of this project is available on my <a data-tooltip-position="top" aria-label="https://github.com/isqnwtn/typed_actor" rel="noopener nofollow" class="external-link" href="https://github.com/isqnwtn/typed_actor" target="_blank">github</a><br>
+checkout more of my works at :  🏠 <a data-tooltip-position="top" aria-label="https://isqnwtn.github.io/" rel="noopener nofollow" class="external-link" href="https://isqnwtn.github.io/" target="_blank">home</a>]]></description><link>blogs/Typed Actor System.html</link><guid isPermaLink="false">blogs/Typed Actor System.md</guid><pubDate>Fri, 04 Jul 2025 05:56:07 GMT</pubDate></item></channel></rss>

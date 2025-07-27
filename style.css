@@ -9,6 +9,16 @@ a {
   text-decoration: none;
   color: inherit;
 }
+
+a.outlink {
+  color: #90ee90; /* Light green */
+  text-decoration: none;
+}
+
+a.outlink:hover {
+  color: #add8e6; /* Light blue */
+}
+
 p {
   font-size: 1.1em;
   margin: 1em 0;
@@ -95,5 +105,3 @@ ul.tabs li.current{
 .tab-content.current{
 	display: inherit;
 }
-
-

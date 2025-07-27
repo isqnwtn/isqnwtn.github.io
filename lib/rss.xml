@@ -1,10 +1,10 @@
-<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[notes]]></title><description><![CDATA[Obsidian digital garden]]></description><link>http://github.com/dylang/node-rss</link><image><url>lib/media/favicon.png</url><title>notes</title><link/></image><generator>Webpage HTML Export plugin for Obsidian</generator><lastBuildDate>Fri, 04 Jul 2025 05:56:33 GMT</lastBuildDate><atom:link href="lib/rss.xml" rel="self" type="application/rss+xml"/><pubDate>Fri, 04 Jul 2025 05:56:32 GMT</pubDate><ttl>60</ttl><dc:creator/><item><title><![CDATA[Typed Actor System]]></title><description><![CDATA[ 
- <br><br>An actor model in concurrent programming is a conceptual model for handling concurrent computation, the core concepts of an Actor model are as follows<br>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[notes]]></title><description><![CDATA[Obsidian digital garden]]></description><link>http://github.com/dylang/node-rss</link><image><url>lib/media/favicon.png</url><title>notes</title><link/></image><generator>Webpage HTML Export plugin for Obsidian</generator><lastBuildDate>Sun, 27 Jul 2025 08:59:59 GMT</lastBuildDate><atom:link href="lib/rss.xml" rel="self" type="application/rss+xml"/><pubDate>Sun, 27 Jul 2025 08:59:58 GMT</pubDate><ttl>60</ttl><dc:creator/><item><title><![CDATA[Typed Actor System]]></title><description><![CDATA[ 
+ <br><br>An actor model in concurrent programming is a conceptual model for handling concurrent computation. The core concepts of an Actor model are as follows<br>
 <br>Processes messages asynchronously
-<br>Has it's own state which is not shared
+<br>Has its state, which is not shared
 <br>Can do one of the three things when it receives a message
 
-<br>Send message to other actors
+<br>Send a message to other actors
 <br>Create new actors
 <br>Modify internal state and behaviour 
 
@@ -134,8 +134,8 @@ impl&lt;M: Send&gt; ActorHandle&lt;M&gt; {
         return handle;
     }
 
-<br><br>So we've setup a basic actor framework that's capable of receiving a message and calling handle function on it, which processes the message and updates it's own state<br>
-But what if we want to ask the actor something? what if we need to add a PoisonPill to it and terminate the actor with a cleanup code?<br>
+<br><br>So we've set up a basic actor framework that's capable of receiving a message and calling the handle function on it, which processes the message and updates its own state<br>
+But what if we want to ask the actor something? What if we need to add a PoisonPill to it and terminate the actor with a cleanup code?<br>
 Let's consider the following example of ActorTrait<br>pub trait ActorTrait: 'static {
     // the state of the actor
     type State:  Send + 'static;
@@ -163,11 +163,11 @@ Let's consider the following example of ActorTrait<br>pub trait ActorTrait: 'sta
     // cleanup code to run once the actor is ready to terminate
     fn cleanup(state: &amp;mut Self::State, signal: Self::PoisonPill) -&gt; ();
 }
-<br>a quick run through of what each of these functionalities do in depth<br>
-<br>Startup - when an actor is created it may want to configure itself by creating and setting certain variables within it's state. Note that we don't need State : Default anymore because we're using startup()-&gt; State to produce state of the actor during startup
-<br>Message - these are messages that the actor can process and do stuff with it's own internal state. note that these messages are fire and forget, whoever sends this do not expect any reply from the actor. 
-<br>Queries - this allows an external entity to make queries to the actor, to which the actor will produce an output. This query can involve changing the state of the actor and the query's answer itself may or may not depend on the state of the actor. The query can be made with or without a timeout
-<br>Poison Pill  - when it's time for the actor to terminate we need to send it a signal to ask it to start termination. and upon this message is received the actor should run the clean up code ( which could involve sending PoisonPill to other actor's created by this actor and other handles that needs to be closed etc.)
+<br>A quick run-through of what each of these functionalities does in depth<br>
+<br>Startup - When an actor is created, it may want to configure itself by creating and setting certain variables within its state. Note that we don't need State: Default anymore because we're using startup()-&gt; State to produce the state of the actor during startup
+<br>Message - these are messages that the actor can process and do stuff with its own internal state. Note that these messages are fire and forget; whoever sends this does not expect any reply from the actor. 
+<br>Queries - this allows an external entity to make queries to the actor, to which the actor will produce an output. This query can involve changing the state of the actor, and the query's answer itself may or may not depend on the state of the actor. The query can be made with or without a timeout
+<br>Poison Pill  - When it's time for the actor to terminate, we need to send it a signal to ask it to start termination. Upon this message being received, the actor should run the clean-up code ( which could involve sending PoisonPill to other actors created by this actor and other handles that need to be closed, etc.)
 <br><br>Now let's see how this will change the implementation of both Actor and ActorHandle<br>pub struct Actor&lt;A: ActorTrait&gt; {
     // a handle to the receiver from mpsc::channel so that we can use it to
     // receive messages
@@ -421,8 +421,7 @@ async fn main() {
     // exit main
     ()
 }
-<br>from the example above we can notice that the actor will be terminated before the sender could send all the messages, this can be seen while running this code as well as it produces<br>
-once the termination is complete.<br>Actor exited with : 1
+<br>From the example above, we can notice that the actor will be terminated before the sender can send all the messages. This can be observed while running this code, as it is produced once the termination is complete.<br>Actor exited with : 1
 SendError { .. }
 SendError { .. }
 SendError { .. }
@@ -444,4 +443,4 @@ for example : <br>async fn startup() -&gt; Self::State ;
 <br>then you will notice that the compiler throws an error like this <br>warning: use of `async fn` in public traits is discouraged as auto trait bounds cannot be specified
 <br>since we are enabling the functions from this trait as public we can solve this error by doing the following.<br>fn startup() -&gt; impl Future&lt;Output =  Self::State&gt; + Send;
 <br>this still allows us to make these functions async and public. without having any compiler warnings.<br><br>the complete implementation of this project is available on my <a data-tooltip-position="top" aria-label="https://github.com/isqnwtn/typed_actor" rel="noopener nofollow" class="external-link" href="https://github.com/isqnwtn/typed_actor" target="_blank">github</a><br>
-checkout more of my works at :  🏠 <a data-tooltip-position="top" aria-label="https://isqnwtn.github.io/" rel="noopener nofollow" class="external-link" href="https://isqnwtn.github.io/" target="_blank">home</a>]]></description><link>blogs/Typed Actor System.html</link><guid isPermaLink="false">blogs/Typed Actor System.md</guid><pubDate>Fri, 04 Jul 2025 05:56:07 GMT</pubDate></item></channel></rss>
+checkout more of my works at :  🏠 <a data-tooltip-position="top" aria-label="https://isqnwtn.github.io/" rel="noopener nofollow" class="external-link" href="https://isqnwtn.github.io/" target="_blank">home</a>]]></description><link>blogs/Typed Actor System.html</link><guid isPermaLink="false">blogs/Typed Actor System.md</guid><pubDate>Sun, 27 Jul 2025 08:59:23 GMT</pubDate></item></channel></rss>

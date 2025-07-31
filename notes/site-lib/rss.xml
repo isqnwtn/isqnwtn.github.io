@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[notes]]></title><description><![CDATA[Obsidian digital garden]]></description><link>http://github.com/dylang/node-rss</link><image><url>site-lib/media/favicon.png</url><title>notes</title><link></link></image><generator>Webpage HTML Export plugin for Obsidian</generator><lastBuildDate>Thu, 31 Jul 2025 15:20:39 GMT</lastBuildDate><atom:link href="site-lib/rss.xml" rel="self" type="application/rss+xml"/><pubDate>Thu, 31 Jul 2025 15:20:38 GMT</pubDate><ttl>60</ttl><dc:creator></dc:creator><item><title><![CDATA[Category Theory]]></title><description><![CDATA[A category is a collection of objects linked by arrows.
+A category has two basic properties.
+Ability to compose the arrows ( associativity )
+Existence of an identity arrow for each object in the category
+a formal definition is as follows
+a class of of objects
+a class of morphisms or arrows
+a domain or a source class function a co-domain or target class function for every three objects -
+a binary operation called composition of morphisms here denotes a subclass of morphisms such that the domain of is and the codomain of is morphisms in this subclass are written as and the composition of , is written as the elements are all the sets
+and the morphisms are set functions consider the set of complex numbers and the set of real numbers, the function can be thought of as similarly if we take arbitrary sets and and the function then we can say this can be extended to all the possible sets ( whether the elements of the sets are integers of rationals or abstract objects themselves, as long as a function exists from one set to another)
+here we can also define the identity arrow for every set as which is an arrow that returns the set itself
+consider a vector space with field , this could be , , or other rings where both addition and multiplication are defined
+the elements are where is the dimension of the vector for field the morphisms are arrows from ]]></description><link>category-theory.html</link><guid isPermaLink="false">maths/Category Theory.md</guid><pubDate>Thu, 31 Jul 2025 15:10:18 GMT</pubDate></item></channel></rss>
